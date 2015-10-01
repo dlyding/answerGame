@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <script type="text/javascript">
+  var exampleSocket = new WebSocket("ws://127.0.0.1:9502");
+  exampleSocket.onopen = function (event) {
+    exampleSocket.send('{"type":"playermatch","playername":"123","questiontype":"history"}');
+  };
+  exampleSocket.onmessage = function (event) {
+    console.log(event.data);
+  }
+  </script>
+</head>
+<body>
+<input  type="text" id="name">
+<button  onclick="exampleSocket.send( document.getElementById('name').value )">发送</button>
+</body>
+</html>
