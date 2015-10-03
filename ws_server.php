@@ -2,6 +2,7 @@
 include_once 'player_match.php';
 include_once 'playerToFile.php';
 include_once 'mysqlconn.php';       //数据库什么时候建立连接需要认真考虑
+include_once 'question.php';
 //创建websocket服务器对象，监听0.0.0.0:9502端口
 $ws = new swoole_websocket_server("0.0.0.0", 9502);
 /*$ws->set(array(
@@ -77,8 +78,32 @@ $ws->on('message', function ($ws, $frame) {
 				playerToFile::addPlayer($playerinfo);
 			}
 			else {
-				$ws->push($tarplayer->fd, json_encode($playerinfo));
-				$ws->push($playerinfo->fd, json_encode($tarplayer));
+				//这种随机提取方法效率不高，需以后改进
+				$questionArray = array();
+				$strsql = "SELECT * FROM tb_question where type = \"$type\" order by rand() limit 0,3";
+				$result = mysql_query($strsql, $myconn);
+				while($test = mysql_fetch_array($result)) {
+					$questioninfo = new question(urlencode($test[1]), urlencode($test[2]), 
+												urlencode($test[3]), urlencode($test[4]), 
+												urlencode($test[5]), urlencode($test[6]), $test[7]);
+					array_push($questionArray, $questioninfo);
+				}
+				/*while ($test) {
+					$questioninfo = new question();
+				}
+				var_dump($test);
+				var_dump($test);*/
+				var_dump($questionArray);
+
+				$infoarray = array();
+				array_push($infoarray, $playerinfo);
+				array_push($infoarray, $questionArray);
+
+				$ws->push($tarplayer->fd, urldecode(json_encode($infoarray)));
+				$infoarray = array();
+				array_push($infoarray, $tarplayer);
+				array_push($infoarray, $questionArray);
+				$ws->push($playerinfo->fd, urldecode(json_encode($infoarray)));
 			}
 			break;
 		default:
